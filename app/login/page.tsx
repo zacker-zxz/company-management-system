@@ -62,7 +62,7 @@ export default function LoginPage() {
 
   return (
     <PageTransition>
-      <div className="relative min-h-screen bg-background overflow-hidden flex items-center justify-center px-4">
+      <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden flex items-center justify-center px-4">
         <ParticleBackground />
 
         <div className="relative z-10 w-full max-w-md">
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 Zacker
               </div>
             </Link>
-            <p className="text-cyan-300">Blockchain Management System</p>
+            <p className="text-slate-600">Blockchain Management System</p>
           </motion.div>
 
           {/* Login Card */}
@@ -87,7 +87,7 @@ export default function LoginPage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <GlassCard className="hover-glow bg-slate-900/90 border-cyan-500/20">
+            <GlassCard className="hover-glow bg-white/95 border-blue-200/50 shadow-xl">
               {/* User Type Tabs - Hidden for now, only admin login */}
               <input type="hidden" value="admin" />
 
@@ -98,13 +98,13 @@ export default function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.2 }}
                 >
-                  <label className="block text-sm font-medium mb-2 text-cyan-300">Username</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-700">Username</label>
                   <input
                     type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="username"
-                    className="w-full px-4 py-3 bg-slate-800 border border-cyan-500/30 rounded-lg text-white placeholder-cyan-300 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 smooth-transition"
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 smooth-transition"
                     required
                   />
                 </motion.div>
@@ -114,13 +114,13 @@ export default function LoginPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.3 }}
                 >
-                  <label className="block text-sm font-medium mb-2 text-cyan-300">Password</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-700">Password</label>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-4 py-3 bg-slate-800 border border-cyan-500/30 rounded-lg text-white placeholder-cyan-300 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 smooth-transition"
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 smooth-transition"
                     required
                   />
                 </motion.div>
@@ -133,9 +133,9 @@ export default function LoginPage() {
                 >
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" className="w-4 h-4 rounded border-primary/30" />
-                    <span className="text-cyan-300">Remember me</span>
+                    <span className="text-slate-600">Remember me</span>
                   </label>
-                  <Link href="/forgot-password" className="text-cyan-400 hover:text-cyan-300 smooth-transition">
+                  <Link href="/forgot-password" className="text-blue-600 hover:text-blue-700 smooth-transition">
                     Forgot Password?
                   </Link>
                 </motion.div>
@@ -146,12 +146,12 @@ export default function LoginPage() {
                   transition={{ duration: 0.4, delay: 0.5 }}
                 >
                   {error && (
-                    <div className="text-red-400 text-sm text-center mb-4 bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                    <div className="text-red-600 text-sm text-center mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
                       {error}
                     </div>
                   )}
   
-                  <NeonButton type="submit" size="lg" className="w-full dark:shadow-primary/30 dark:hover:shadow-primary/50" disabled={loading}>
+                  <NeonButton type="submit" size="lg" className="w-full" disabled={loading}>
                     {loading ? 'Signing In...' : 'Sign In'}
                   </NeonButton>
                 </motion.div>
