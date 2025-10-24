@@ -220,11 +220,11 @@ export default function AdminDashboard() {
             <h2 className="font-heading text-xl font-bold mb-6 text-slate-800">Top Performers</h2>
             <div className="space-y-4">
               {[
-                { name: "Alex Johnson", score: 98, },
-                { name: "Sarah Williams", score: 96,},
-                { name: "Mike Chen", score: 94, },
-                { name: "Emma Davis", score: 92, },
-                { name: "John Smith", score: 90, },
+                { name: "Rahul Sharma", score: 98 },
+                { name: "Priya Patel", score: 96 },
+                { name: "Arjun Verma", score: 94 },
+                { name: "Kavita Singh", score: 92 },
+                { name: "Vikas Kumar", score: 90 },
               ].map((performer, i) => (
                 <motion.div
                   key={i}

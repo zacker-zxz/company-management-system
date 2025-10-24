@@ -49,6 +49,12 @@ const navItems = [
     description: "Compensation Management"
   },
   {
+    href: "/admin/payroll",
+    label: "Payroll Actions",
+    icon: DollarSign,
+    description: "Process Payments"
+  },
+  {
     href: "/admin/settings",
     label: "System Config",
     icon: Settings,
