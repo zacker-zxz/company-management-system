@@ -26,8 +26,8 @@ export default function ForgotPasswordPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <Link href="/">
-            <div className="font-heading text-3xl font-bold gradient-text mb-2 hover:opacity-80 smooth-transition">
-              ZACKER
+            <div className="font-heading text-3xl font-bold text-primary mb-2 hover:opacity-80 smooth-transition">
+              Zacker
             </div>
           </Link>
           <p className="text-muted">Reset Your Password</p>

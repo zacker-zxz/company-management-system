@@ -78,18 +78,20 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-heading: "Poppins", system-ui, sans-serif;
 
-  /* Professional color palette: blue, light blue, cyan, neon with black/white */
-  --color-background: #f8f9fa;
-  --color-surface: #ffffff;
-  --color-surface-light: #f0f4f8;
-  --color-primary: #0066cc;
-  --color-primary-light: #0080ff;
-  --color-primary-dark: #004499;
-  --color-accent: #00bfff;
+  /* Professional color palette: blue, dark, white, neon, cyan, purple */
+  --color-background: #0a0a0a;
+  --color-surface: #1a1a1a;
+  --color-surface-light: #2a2a2a;
+  --color-primary: #6366f1;
+  --color-primary-light: #8b5cf6;
+  --color-primary-dark: #4f46e5;
+  --color-accent: #06b6d4;
   --color-accent-neon: #00ffff;
-  --color-text: #1a1a1a;
-  --color-text-muted: #666666;
-  --color-border: #e0e0e0;
+  --color-purple: #a855f7;
+  --color-purple-light: #c084fc;
+  --color-text: #ffffff;
+  --color-text-muted: #a1a1aa;
+  --color-border: #374151;
 
   /* Semantic tokens */
   --background: var(--color-background);
@@ -150,8 +152,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Subtle professional background gradient */
-    background: linear-gradient(135deg, #f8f9fa 0%, #f0f4f8 100%);
+    /* Professional dark theme background */
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
   }
 }
 
@@ -162,6 +164,14 @@
 
 .glass-dark {
   @apply bg-white/90 backdrop-blur-md border border-primary/15 rounded-lg shadow-md;
+}
+
+.dark .glass {
+  @apply bg-black/80 border-white/10;
+}
+
+.dark .glass-dark {
+  @apply bg-black/90 border-white/15;
 }
 
 /* Professional accent effects */
@@ -242,4 +252,12 @@
 
 ::-webkit-scrollbar-thumb {
   @apply bg-primary/30 rounded hover:bg-primary/50;
+}
+
+.dark ::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-primary/50 hover:bg-primary/70;
 }

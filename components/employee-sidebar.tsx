@@ -20,7 +20,7 @@ export function EmployeeSidebar() {
     <aside className="w-64 bg-surface border-r border-primary/20 h-screen flex flex-col fixed left-0 top-0">
       {/* Logo */}
       <div className="p-6 border-b border-primary/20">
-        <div className="font-heading text-2xl font-bold gradient-text">ZACKER</div>
+        <div className="font-heading text-2xl font-bold text-primary">Zacker</div>
       </div>
 
       {/* Navigation */}

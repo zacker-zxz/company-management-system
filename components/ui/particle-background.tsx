@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useTheme } from "next-themes"
 
 interface Particle {
   x: number
@@ -17,6 +18,7 @@ export function ParticleBackground() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const particlesRef = useRef<Particle[]>([])
   const mouseRef = useRef({ x: 0, y: 0 })
+  const { theme } = useTheme()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -25,11 +27,14 @@ export function ParticleBackground() {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
+    // Ensure theme is available
+    const currentTheme = theme || "light"
+
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
 
     const particles: Particle[] = []
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 80; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
@@ -49,8 +54,9 @@ export function ParticleBackground() {
     window.addEventListener("mousemove", handleMouseMove)
 
     const animate = () => {
-      // Clear canvas with fade effect
-      ctx.fillStyle = "rgba(248, 249, 250, 0.1)"
+      // Clear canvas with fade effect based on theme
+      const isDark = currentTheme === "dark"
+      ctx.fillStyle = isDark ? "rgba(0, 0, 0, 1)" : "rgba(248, 249, 250, 0.05)"
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
       const particles = particlesRef.current
@@ -98,10 +104,18 @@ export function ParticleBackground() {
         }
 
         // Draw particle
-        ctx.fillStyle = "rgba(0, 102, 204, 0.6)"
+        if (isDark) {
+          ctx.fillStyle = "rgba(0, 102, 204, 0.6)"
+        } else {
+          ctx.fillStyle = "rgba(0, 102, 204, 0.6)"
+        }
+
         ctx.beginPath()
         ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
         ctx.fill()
+
+        // Reset shadow for connections
+        ctx.shadowBlur = 0
       })
 
       const connectionDistance = 120
@@ -113,7 +127,7 @@ export function ParticleBackground() {
 
           if (distance < connectionDistance) {
             const opacity = (1 - distance / connectionDistance) * 0.3
-            ctx.strokeStyle = `rgba(0, 128, 255, ${opacity})`
+            ctx.strokeStyle = isDark ? `rgba(0, 255, 255, ${opacity})` : `rgba(0, 128, 255, ${opacity})`
             ctx.lineWidth = 1
             ctx.beginPath()
             ctx.moveTo(particles[i].x, particles[i].y)
@@ -138,7 +152,7 @@ export function ParticleBackground() {
       window.removeEventListener("resize", handleResize)
       window.removeEventListener("mousemove", handleMouseMove)
     }
-  }, [])
+  }, [theme])
 
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }} />
 }
