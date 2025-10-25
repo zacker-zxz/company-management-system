@@ -8,8 +8,24 @@ const getAllTasks = async (req, res) => {
     // Get user details for assigned users
     const tasksWithUsers = await Promise.all(
       tasks.map(async (task) => {
-        const assignedUser = await User.findById(task.assignedTo);
-        const assignedByUser = await User.findById(task.assignedBy);
+        let assignedUser = null;
+        let assignedByUser = null;
+
+        try {
+          if (task.assignedTo && typeof task.assignedTo === 'string') {
+            assignedUser = await User.findById(task.assignedTo);
+          }
+        } catch (error) {
+          console.log('Error finding assigned user:', error.message);
+        }
+
+        try {
+          if (task.assignedBy && typeof task.assignedBy === 'string') {
+            assignedByUser = await User.findById(task.assignedBy);
+          }
+        } catch (error) {
+          console.log('Error finding assigned by user:', error.message);
+        }
 
         return {
           id: task._id.toString(),
@@ -176,8 +192,24 @@ const getTaskById = async (req, res) => {
       });
     }
 
-    const assignedUser = await User.findById(task.assignedTo);
-    const assignedByUser = await User.findById(task.assignedBy);
+    let assignedUser = null;
+    let assignedByUser = null;
+
+    try {
+      if (task.assignedTo && typeof task.assignedTo === 'string') {
+        assignedUser = await User.findById(task.assignedTo);
+      }
+    } catch (error) {
+      console.log('Error finding assigned user:', error.message);
+    }
+
+    try {
+      if (task.assignedBy && typeof task.assignedBy === 'string') {
+        assignedByUser = await User.findById(task.assignedBy);
+      }
+    } catch (error) {
+      console.log('Error finding assigned by user:', error.message);
+    }
 
     res.json({
       success: true,
