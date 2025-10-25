@@ -9,12 +9,14 @@ import { ParticleBackground } from "@/components/ui/particle-background"
 import { NeonButton } from "@/components/ui/neon-button"
 import { GlassCard } from "@/components/ui/glass-card"
 import { PageTransition } from "@/components/ui/page-transition"
+import { Eye, EyeOff } from "lucide-react"
 import { motion } from "framer-motion"
 
 export default function LoginPage() {
   const [userType, setUserType] = useState<"admin" | "employee">("employee")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   const [loading, setLoading] = useState(false)
@@ -26,7 +28,11 @@ export default function LoginPage() {
     setError("")
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      // Use network IP for mobile, localhost for desktop
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      const baseUrl = isMobile ? 'http://192.168.1.6:5000' : 'http://localhost:5000'
+
+      const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,14 +121,23 @@ export default function LoginPage() {
                   transition={{ duration: 0.4, delay: 0.3 }}
                 >
                   <label className="block text-sm font-medium mb-2 text-slate-700">Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 smooth-transition"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-3 pr-12 bg-white border border-blue-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 smooth-transition"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-slate-500 hover:text-slate-700 focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </motion.div>
 
                 <motion.div
