@@ -36,10 +36,22 @@ class User {
     return result;
   }
 
-  // Find user by username
-  static async findByUsername(username) {
+  // Find user by email
+  static async findByEmail(email) {
     const db = getDB();
-    return await db.collection('users').findOne({ username });
+    return await db.collection('users').findOne({ email });
+  }
+
+  // Get all users with pagination
+  static async findAllPaginated(skip = 0, limit = 10, sort = { createdAt: -1 }) {
+    const db = getDB();
+    return await db.collection('users').find({}).sort(sort).skip(skip).limit(limit).toArray();
+  }
+
+  // Count total employees
+  static async countEmployees() {
+    const db = getDB();
+    return await db.collection('users').countDocuments({ role: 'employee' });
   }
 
   // Find user by ID

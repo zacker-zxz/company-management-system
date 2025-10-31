@@ -1,199 +1,239 @@
 const User = require('../models/User');
+const { catchAsync } = require('../utils/asyncHandler');
+const { NotFoundError, ConflictError, ValidationError } = require('../utils/errorHandler');
+const { logger } = require('../utils/logger');
+const cacheService = require('../services/cacheService');
 
-const getAllEmployees = async (req, res) => {
-  try {
-    const employees = await User.findAll();
+const getAllEmployees = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const sort = req.query.sort || 'createdAt';
+  const order = req.query.order === 'asc' ? 1 : -1;
+  const skip = (page - 1) * limit;
 
-    // Filter out admin users and return only employees
-    const employeeList = employees
-      .filter(user => user.role === 'employee')
-      .map(employee => ({
-        id: employee._id.toString(),
-        name: employee.name,
-        email: employee.email,
-        department: employee.department,
-        position: employee.position,
-        salary: employee.salary,
-        status: employee.isActive ? 'Active' : 'Inactive',
-        joinDate: employee.createdAt
-      }));
-
-    res.json({
-      success: true,
-      data: employeeList
+  // Build cache key
+  const cacheKey = `employees:${page}:${limit}:${sort}:${order}`;
+  
+  // Try to get from cache first
+  const cachedData = cacheService.get('user', cacheKey);
+  if (cachedData) {
+    logger.info('Employees retrieved from cache', {
+      userId: req.user.userId,
+      page,
+      limit,
+      cacheKey
     });
-
-  } catch (error) {
-    console.error('Get employees error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+    
+    return res.json(cachedData);
   }
-};
 
-const createEmployee = async (req, res) => {
-  try {
-    const { name, email, department, position, salary } = req.body;
+  // Build sort object
+  const sortObj = { [sort]: order };
 
-    // Check if employee with this email already exists
-    const existingUser = await User.findByUsername(email);
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'Employee with this email already exists'
-      });
+  // Get employees with pagination
+  const employees = await User.findAllPaginated(skip, limit, sortObj);
+  const total = await User.countEmployees();
+
+  // Filter out admin users and format response
+  const employeeList = employees
+    .filter(user => user.role === 'employee')
+    .map(employee => ({
+      id: employee._id.toString(),
+      name: employee.name,
+      email: employee.email,
+      department: employee.department,
+      position: employee.position,
+      salary: employee.salary,
+      status: employee.isActive ? 'Active' : 'Inactive',
+      joinDate: employee.createdAt
+    }));
+
+  const responseData = {
+    success: true,
+    data: employeeList,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit)
     }
+  };
 
-    // Generate username from email
-    const username = email.split('@')[0];
+  // Cache the response
+  cacheService.set('user', cacheKey, responseData, 300); // 5 minutes
 
-    // Create employee data
-    const employeeData = {
-      username,
-      password: 'TempPass123!', // Temporary password
-      role: 'employee',
-      name,
-      email,
-      department,
-      position,
-      salary: parseFloat(salary) || 0,
-      isActive: true
-    };
+  logger.info('Employees retrieved from database', {
+    userId: req.user.userId,
+    page,
+    limit,
+    total,
+    returned: employeeList.length
+  });
 
-    const employee = new User(employeeData);
+  res.json(responseData);
+});
 
-    // Hash password
-    await employee.hashPassword();
+const createEmployee = catchAsync(async (req, res) => {
+  const { name, email, department, position, salary } = req.body;
 
-    // Save to database
-    await employee.save();
-
-    res.status(201).json({
-      success: true,
-      message: 'Employee created successfully',
-      data: {
-        id: employee._id ? employee._id.toString() : '',
-        name: employee.name,
-        email: employee.email,
-        department: employee.department,
-        position: employee.position,
-        salary: employee.salary,
-        status: 'Active'
-      }
-    });
-
-  } catch (error) {
-    console.error('Create employee error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+  // Check if employee with this email already exists
+  const existingUser = await User.findByEmail(email);
+  if (existingUser) {
+    throw new ConflictError('Employee with this email already exists');
   }
-};
 
-const updateEmployee = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, email, department, position, salary, status } = req.body;
+  // Generate username from email
+  const username = email.split('@')[0];
 
-    const updateData = {
-      name,
-      email,
-      department,
-      position,
-      salary: parseFloat(salary) || 0,
-      isActive: status === 'Active'
-    };
+  // Create employee data
+  const employeeData = {
+    username,
+    password: 'TempPass123!', // Temporary password
+    role: 'employee',
+    name,
+    email,
+    department,
+    position,
+    salary: parseFloat(salary) || 0,
+    isActive: true
+  };
 
-    const result = await User.updateById(id, updateData);
+  const employee = new User(employeeData);
 
-    if (result.modifiedCount === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Employee not found'
-      });
+  // Hash password
+  await employee.hashPassword();
+
+  // Save to database
+  await employee.save();
+
+  // Invalidate related caches
+  cacheService.clear('user'); // Clear user list caches
+  cacheService.clear('stats'); // Clear dashboard stats
+
+  logger.info('Employee created', {
+    userId: req.user.userId,
+    employeeId: employee._id.toString(),
+    employeeName: employee.name,
+    employeeEmail: employee.email
+  });
+
+  res.status(201).json({
+    success: true,
+    message: 'Employee created successfully',
+    data: {
+      id: employee._id.toString(),
+      name: employee.name,
+      email: employee.email,
+      department: employee.department,
+      position: employee.position,
+      salary: employee.salary,
+      status: 'Active'
     }
+  });
+});
 
-    res.json({
-      success: true,
-      message: 'Employee updated successfully'
-    });
+const updateEmployee = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { name, email, department, position, salary, status } = req.body;
 
-  } catch (error) {
-    console.error('Update employee error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
+  // Check if employee exists
+  const existingEmployee = await User.findById(id);
+  if (!existingEmployee || existingEmployee.role !== 'employee') {
+    throw new NotFoundError('Employee');
   }
-};
 
-const deleteEmployee = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Hard delete - permanently remove from database
-    const { ObjectId } = require('mongodb');
-    const db = require('../models/User').getDB ? require('../models/User').getDB() : require('../config/database').getDB();
-
-    const result = await db.collection('users').deleteOne({ _id: new ObjectId(id) });
-
-    if (result.deletedCount === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Employee not found'
-      });
+  // Check if email is being changed and if it conflicts
+  if (email && email !== existingEmployee.email) {
+    const emailExists = await User.findByEmail(email);
+    if (emailExists) {
+      throw new ConflictError('Employee with this email already exists');
     }
-
-    res.json({
-      success: true,
-      message: 'Employee permanently deleted successfully'
-    });
-
-  } catch (error) {
-    console.error('Delete employee error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
   }
-};
 
-const getEmployeeById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const employee = await User.findById(id);
+  const updateData = {};
+  if (name) updateData.name = name;
+  if (email) updateData.email = email;
+  if (department) updateData.department = department;
+  if (position) updateData.position = position;
+  if (salary !== undefined) updateData.salary = parseFloat(salary) || 0;
+  if (status !== undefined) updateData.isActive = status === 'Active';
 
-    if (!employee || employee.role !== 'employee') {
-      return res.status(404).json({
-        success: false,
-        message: 'Employee not found'
-      });
+  const result = await User.updateById(id, updateData);
+
+  if (result.modifiedCount === 0) {
+    throw new NotFoundError('Employee');
+  }
+
+  logger.info('Employee updated', {
+    userId: req.user.userId,
+    employeeId: id,
+    updatedFields: Object.keys(updateData)
+  });
+
+  res.json({
+    success: true,
+    message: 'Employee updated successfully'
+  });
+});
+
+const deleteEmployee = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  // Check if employee exists
+  const existingEmployee = await User.findById(id);
+  if (!existingEmployee || existingEmployee.role !== 'employee') {
+    throw new NotFoundError('Employee');
+  }
+
+  // Hard delete - permanently remove from database
+  const { ObjectId } = require('mongodb');
+  const db = require('../config/database').getDB();
+
+  const result = await db.collection('users').deleteOne({ _id: new ObjectId(id) });
+
+  if (result.deletedCount === 0) {
+    throw new NotFoundError('Employee');
+  }
+
+  logger.info('Employee deleted', {
+    userId: req.user.userId,
+    employeeId: id,
+    employeeName: existingEmployee.name
+  });
+
+  res.json({
+    success: true,
+    message: 'Employee permanently deleted successfully'
+  });
+});
+
+const getEmployeeById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const employee = await User.findById(id);
+
+  if (!employee || employee.role !== 'employee') {
+    throw new NotFoundError('Employee');
+  }
+
+  logger.info('Employee retrieved by ID', {
+    userId: req.user.userId,
+    employeeId: id
+  });
+
+  res.json({
+    success: true,
+    data: {
+      id: employee._id.toString(),
+      name: employee.name,
+      email: employee.email,
+      department: employee.department,
+      position: employee.position,
+      salary: employee.salary,
+      status: employee.isActive ? 'Active' : 'Inactive',
+      joinDate: employee.createdAt
     }
-
-    res.json({
-      success: true,
-      data: {
-        id: employee._id.toString(),
-        name: employee.name,
-        email: employee.email,
-        department: employee.department,
-        position: employee.position,
-        salary: employee.salary,
-        status: employee.isActive ? 'Active' : 'Inactive',
-        joinDate: employee.createdAt
-      }
-    });
-
-  } catch (error) {
-    console.error('Get employee error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
+  });
+});
 
 module.exports = {
   getAllEmployees,

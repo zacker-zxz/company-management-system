@@ -28,9 +28,8 @@ export default function LoginPage() {
     setError("")
 
     try {
-      // Use network IP for mobile, localhost for desktop
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      const baseUrl = isMobile ? 'http://192.168.1.6:5000' : 'http://localhost:5000'
+      // Use environment variable for production deployment
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://zacker-backend.vercel.app'
 
       const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
@@ -58,6 +57,9 @@ export default function LoginPage() {
         }
       } else {
         setError(data.message || 'Login failed')
+        // Clear any existing auth data on failed login
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
       }
     } catch (error) {
       setError('Network error. Please try again.')

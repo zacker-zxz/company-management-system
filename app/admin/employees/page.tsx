@@ -72,8 +72,7 @@ export default function EmployeesPage() {
     e.preventDefault()
     try {
       const token = localStorage.getItem('token')
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      const baseUrl = isMobile ? 'http://192.168.1.6:5000' : 'http://localhost:5000'
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://zacker-backend.vercel.app'
       const response = await fetch(`${baseUrl}/api/employees`, {
         method: 'POST',
         headers: {

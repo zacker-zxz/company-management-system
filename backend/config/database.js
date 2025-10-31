@@ -9,7 +9,18 @@ let db;
 
 async function connectDB() {
   try {
-    client = new MongoClient(uri);
+    client = new MongoClient(uri, {
+      ssl: true,
+      tls: true,
+      tlsAllowInvalidCertificates: false,
+      tlsAllowInvalidHostnames: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+      retryWrites: true,
+      retryReads: true,
+    });
     await client.connect();
     console.log('✅ Connected to MongoDB');
 

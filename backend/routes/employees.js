@@ -7,25 +7,31 @@ const {
   deleteEmployee,
   getEmployeeById
 } = require('../controllers/employeeController');
-const { authenticate, requireAdmin } = require('../middleware/auth');
+const authService = require('../services/authService');
+const {
+  validateCreateEmployee,
+  validateUpdateEmployee,
+  validateEmployeeId,
+  validatePagination
+} = require('../middleware/validation');
 
 // All employee routes require authentication and admin role
-router.use(authenticate);
-router.use(requireAdmin);
+router.use(authService.authenticate);
+router.use(authService.authorize('admin'));
 
-// GET /api/employees - Get all employees
-router.get('/', getAllEmployees);
+// GET /api/employees - Get all employees with pagination
+router.get('/', validatePagination, getAllEmployees);
 
 // POST /api/employees - Create new employee
-router.post('/', createEmployee);
+router.post('/', validateCreateEmployee, createEmployee);
 
 // GET /api/employees/:id - Get employee by ID
-router.get('/:id', getEmployeeById);
+router.get('/:id', validateEmployeeId, getEmployeeById);
 
 // PUT /api/employees/:id - Update employee
-router.put('/:id', updateEmployee);
+router.put('/:id', validateUpdateEmployee, updateEmployee);
 
 // DELETE /api/employees/:id - Delete employee (soft delete)
-router.delete('/:id', deleteEmployee);
+router.delete('/:id', validateEmployeeId, deleteEmployee);
 
 module.exports = router;
