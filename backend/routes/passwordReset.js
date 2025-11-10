@@ -48,3 +48,4 @@ router.get('/verify/:token', verifyResetToken);
 router.post('/change', authService.authenticate, validatePasswordChange, changePassword);
 
 module.exports = router;
+

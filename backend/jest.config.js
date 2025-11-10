@@ -17,3 +17,4 @@ module.exports = {
   testTimeout: 30000,
   maxWorkers: 1 // Run tests sequentially to avoid database conflicts
 };
+
