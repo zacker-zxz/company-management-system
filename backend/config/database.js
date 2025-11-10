@@ -10,10 +10,6 @@ let db;
 async function connectDB() {
   try {
     client = new MongoClient(uri, {
-      ssl: true,
-      tls: true,
-      tlsAllowInvalidCertificates: false,
-      tlsAllowInvalidHostnames: false,
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,

@@ -54,6 +54,12 @@ class User {
     return await db.collection('users').countDocuments({ role: 'employee' });
   }
 
+  // Find user by username
+  static async findByUsername(username) {
+    const db = getDB();
+    return await db.collection('users').findOne({ username });
+  }
+
   // Find user by ID
   static async findById(id) {
     const db = getDB();
